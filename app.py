@@ -1,6 +1,10 @@
 import os
 from flask import Flask, request, jsonify
 from resume_scanner import extract_text_from_pdf, calculate_similarity
+@app.route('/')
+def home():
+    return "Flask app is running!"
+
 
 app = Flask(__name__)
 
