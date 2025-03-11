@@ -60,6 +60,6 @@ wrapt==1.17.2
 Flask
 gunicorn
 waitress
-numpy==1.21.6
+numpy
 pdfplumber
 scikit-learn
