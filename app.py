@@ -1,7 +1,7 @@
 import os
 import shutil
 from flask import Flask, request, jsonify
-from resume_scanner import extract_text_from_pdf, calculate_similarity
+from .resume_scanner import extract_text_from_pdf, calculate_similarity
 
 app = Flask(__name__)
 
