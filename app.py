@@ -1,15 +1,14 @@
-import os
 from flask import Flask, request, jsonify
 from resume_scanner import extract_text_from_pdf, calculate_similarity
-@app.route('/')
-def home():
-    return "Flask app is running!"
 
-
-app = Flask(__name__)
+app = Flask(__name__)  # Define the app before using it
 
 # Define the job description
 job_description = "Looking for a Python developer with experience in machine learning, AI, and SQL."
+
+@app.route('/')
+def home():
+    return "Flask app is running!"
 
 @app.route('/upload', methods=['POST'])
 def upload_resume():
@@ -35,5 +34,4 @@ def upload_resume():
     })
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render assigns a dynamic port
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)  # Ensure Flask binds to all IPs
