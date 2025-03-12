@@ -1,62 +1,67 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import PyPDF2
-import os
+import pdfplumber
+import re
+import spacy
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from frontend
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-@app.route("/")
-def home():
-    return "Welcome to the Resume Analyzer API. Use /upload to upload resumes."
-
-@app.route("/upload", methods=["POST"])
-def upload_file():
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    
-    file = request.files["file"]
-    
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
-    
-    file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-    file.save(file_path)
-    
-    # Extract text from the PDF
-    extracted_text = extract_text_from_pdf(file_path)
-    
-    # Perform analysis (dummy example for now)
-    analysis_result = analyze_resume(extracted_text)
-    
-    return jsonify({
-        "message": "File uploaded successfully!",
-        "filename": file.filename,
-        "analysis": analysis_result
-    })
+# Load NLP model
+nlp = spacy.load("en_core_web_sm")
 
 def extract_text_from_pdf(pdf_path):
-    try:
-        text = ""
-        with open(pdf_path, "rb") as f:
-            pdf_reader = PyPDF2.PdfReader(f)
-            for page in pdf_reader.pages:
-                text += page.extract_text() + "\n"
-        return text.strip()
-    except Exception as e:
-        return str(e)
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() + "\n"
+    return text.strip()
 
-def analyze_resume(text):
-    # Dummy analysis - replace with actual NLP processing
-    return {
-        "education": "Bachelor's in Computer Science" if "computer science" in text.lower() else "Unknown",
-        "experience": ["Software Engineer at XYZ"] if "software engineer" in text.lower() else [],
-        "skills": ["Python", "Machine Learning"] if "python" in text.lower() else ["Unknown"]
-    }
+def extract_details(text):
+    details = {}
+
+    # Extract Name (First Capitalized Words)
+    doc = nlp(text)
+    names = [ent.text for ent in doc.ents if ent.label_ == "PERSON"]
+    details["name"] = names[0] if names else "Not Found"
+
+    # Extract Email
+    email_match = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
+    details["email"] = email_match.group(0) if email_match else "Not Found"
+
+    # Extract Phone Number
+    phone_match = re.search(r"\+?\d[\d -]{8,}\d", text)
+    details["phone"] = phone_match.group(0) if phone_match else "Not Found"
+
+    # Extract LinkedIn Profile
+    linkedin_match = re.search(r"https?://(www\.)?linkedin\.com/in/[a-zA-Z0-9_-]+", text)
+    details["linkedin"] = linkedin_match.group(0) if linkedin_match else "Not Found"
+
+    # Extract GitHub Profile
+    github_match = re.search(r"https?://(www\.)?github\.com/[a-zA-Z0-9_-]+", text)
+    details["github"] = github_match.group(0) if github_match else "Not Found"
+
+    # Extract Skills
+    skills_list = ["Python", "JavaScript", "Machine Learning", "Data Science", "Django", "Flask", "React", "SQL"]
+    found_skills = [skill for skill in skills_list if skill.lower() in text.lower()]
+    details["skills"] = found_skills if found_skills else ["Not Found"]
+
+    return details
+
+@app.route("/upload", methods=["POST"])
+def upload_resume():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+
+    text = extract_text_from_pdf(file)
+    analysis = extract_details(text)
+
+    return jsonify({
+        "message": "File processed successfully!",
+        "analysis": analysis
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
