@@ -1,43 +1,62 @@
 from flask import Flask, request, jsonify
-import pdfplumber
+from flask_cors import CORS
+import PyPDF2
 import os
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS to allow requests from frontend
 
-# Function to extract text from a PDF file
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            text += page.extract_text() + "\n"
-    return text
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+@app.route("/")
+def home():
+    return "Welcome to the Resume Analyzer API. Use /upload to upload resumes."
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
-
+    
     file = request.files["file"]
-
+    
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
+    
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(file_path)
+    
+    # Extract text from the PDF
+    extracted_text = extract_text_from_pdf(file_path)
+    
+    # Perform analysis (dummy example for now)
+    analysis_result = analyze_resume(extracted_text)
+    
+    return jsonify({
+        "message": "File uploaded successfully!",
+        "filename": file.filename,
+        "analysis": analysis_result
+    })
 
-    if file:
-        file_path = os.path.join("uploads", file.filename)
-        file.save(file_path)
+def extract_text_from_pdf(pdf_path):
+    try:
+        text = ""
+        with open(pdf_path, "rb") as f:
+            pdf_reader = PyPDF2.PdfReader(f)
+            for page in pdf_reader.pages:
+                text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        return str(e)
 
-        extracted_text = extract_text_from_pdf(file_path)
-        print("Extracted Text:", extracted_text)  # Debugging
-
-        # Placeholder for text processing and analysis
-        analysis = {
-            "education": "Bachelor's in Computer Science" if "computer" in extracted_text.lower() else "Not found",
-            "experience": ["Software Engineer", "Intern"] if "intern" in extracted_text.lower() else [],
-            "skills": ["Python", "JavaScript", "Machine Learning"] if "python" in extracted_text.lower() else []
-        }
-
-        print("Final Analysis:", analysis)  # Debugging
-        return jsonify({"analysis": analysis})
+def analyze_resume(text):
+    # Dummy analysis - replace with actual NLP processing
+    return {
+        "education": "Bachelor's in Computer Science" if "computer science" in text.lower() else "Unknown",
+        "experience": ["Software Engineer at XYZ"] if "software engineer" in text.lower() else [],
+        "skills": ["Python", "Machine Learning"] if "python" in text.lower() else ["Unknown"]
+    }
 
 if __name__ == "__main__":
     app.run(debug=True)
