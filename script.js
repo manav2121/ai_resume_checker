@@ -1,31 +1,30 @@
-document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+const API_URL = "https://ai-resume-checker-e833.onrender.com"; // Update this with your actual backend URL
 
-    let fileInput = document.getElementById("fileInput");
-    let responseMessage = document.getElementById("responseMessage");
+document.addEventListener("DOMContentLoaded", () => {
+    const uploadForm = document.getElementById("upload-form");
+    const fileInput = document.getElementById("file-input");
+    const resultDiv = document.getElementById("result");
 
-    if (!fileInput.files.length) {
-        responseMessage.innerText = "Please select a file.";
-        return;
-    }
+    uploadForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
 
-    let formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+        try {
+            const response = await fetch(`${API_URL}/upload`, {
+                method: "POST",
+                body: formData
+            });
 
-    try {
-        let response = await fetch("https://ai-resume-scanner-0bpx.onrender.com/upload", {
-            method: "POST",
-            body: formData
-        });
+            if (!response.ok) {
+                throw new Error("Failed to upload file");
+            }
 
-        let result = await response.json();
-        if (response.ok) {
-            responseMessage.innerText = "Success: " + result.message;
-        } else {
-            responseMessage.innerText = "Error: " + result.error;
+            const data = await response.json();
+            resultDiv.innerHTML = `<h3>Analysis Result:</h3><p>${data.result}</p>`;
+        } catch (error) {
+            console.error("Error:", error);
+            resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
         }
-    } catch (error) {
-        console.error("Upload failed:", error);
-        responseMessage.innerText = "Failed to upload file.";
-    }
+    });
 });
