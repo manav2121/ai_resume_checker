@@ -1,37 +1,29 @@
-from flask import Flask, request, jsonify
-from resume_scanner import extract_text_from_pdf, calculate_similarity
+from flask import Flask, request, jsonify, render_template
+import os
 
-app = Flask(__name__)  # Define the app before using it
+app = Flask(__name__)
+app.config["DEBUG"] = True  # Enable debug mode
 
-# Define the job description
-job_description = "Looking for a Python developer with experience in machine learning, AI, and SQL."
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 def home():
     return "Flask app is running!"
 
 @app.route('/upload', methods=['POST'])
-def upload_resume():
+def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
-    
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-    
-    # Save the uploaded file temporarily
-    file_path = f"temp/{file.filename}"
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
-    
-    # Extract text from the resume
-    resume_text = extract_text_from_pdf(file_path)
-    
-    # Calculate similarity score
-    similarity_score = calculate_similarity(resume_text, job_description)
-    
-    return jsonify({
-        "resume_match_score": round(similarity_score, 2)
-    })
+    return jsonify({"message": "File uploaded successfully", "filename": file.filename})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)  # Ensure Flask binds to all IPs
+    port = int(os.environ.get('PORT', 5000))  # Use PORT from Render, default to 5000
+    app.run(host='0.0.0.0', port=port)
+
