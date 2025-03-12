@@ -1,30 +1,35 @@
-const API_URL = "https://ai-resume-checker-e833.onrender.com"; // Update this with your actual backend URL
-
-document.addEventListener("DOMContentLoaded", () => {
-    const uploadForm = document.getElementById("upload-form");
+document.getElementById("upload-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
     const fileInput = document.getElementById("file-input");
     const resultDiv = document.getElementById("result");
-
-    uploadForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append("file", fileInput.files[0]);
-
-        try {
-            const response = await fetch(`${API_URL}/upload`, {
-                method: "POST",
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to upload file");
+    resultDiv.innerHTML = "Uploading..."; // Show loading message
+    
+    if (fileInput.files.length === 0) {
+        resultDiv.innerHTML = "Please select a file to upload.";
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    
+    try {
+        const response = await fetch("https://ai-resume-checker-e833.onrender.com/upload", {
+            method: "POST",
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            resultDiv.innerHTML = `<h3>Upload Successful!</h3><p>${data.message}</p>`;
+            if (data.extracted_text) {
+                resultDiv.innerHTML += `<h4>Extracted Text:</h4><pre>${data.extracted_text}</pre>`;
             }
-
-            const data = await response.json();
-            resultDiv.innerHTML = `<h3>Analysis Result:</h3><p>${data.result}</p>`;
-        } catch (error) {
-            console.error("Error:", error);
-            resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        } else {
+            resultDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
         }
-    });
+    } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;">An error occurred: ${error.message}</p>`;
+    }
 });
