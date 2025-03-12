@@ -63,3 +63,5 @@ waitress
 numpy
 pdfplumber
 scikit-learn
+flask-cors
+
