@@ -1,9 +1,9 @@
-document.getElementById("uploadForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-    
-    let fileInput = document.getElementById("resumeInput");
-    if (fileInput.files.length === 0) {
-        alert("Please select a file to upload.");
+document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    let fileInput = document.getElementById("fileInput");
+    if (!fileInput.files.length) {
+        alert("Please select a file.");
         return;
     }
 
@@ -11,14 +11,19 @@ document.getElementById("uploadForm").addEventListener("submit", async function(
     formData.append("file", fileInput.files[0]);
 
     try {
-        let response = await fetch(" https://ai-resume-checker-e833.onrender.com/upload", {  // Change this to your actual backend endpoint
+        let response = await fetch("https://ai-resume-checker-e833.onrender.com/upload", {
             method: "POST",
             body: formData
         });
 
         let result = await response.json();
-        document.getElementById("result").innerText = `Result: ${result.message || "Processed successfully!"}`;
+        if (response.ok) {
+            alert("Success: " + result.message);
+        } else {
+            alert("Error: " + result.error);
+        }
     } catch (error) {
-        document.getElementById("result").innerText = "Error processing file!";
+        console.error("Upload failed:", error);
+        alert("Failed to upload file.");
     }
 });
