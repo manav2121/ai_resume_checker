@@ -1,9 +1,8 @@
-document.getElementById("upload-form").addEventListener("submit", async function(event) {
+document.getElementById("uploadForm").addEventListener("submit", async function(event) {
     event.preventDefault();
     
-    const fileInput = document.getElementById("file-input");
+    const fileInput = document.getElementById("resume");
     const resultDiv = document.getElementById("result");
-    resultDiv.innerHTML = "Uploading..."; // Show loading message
     
     if (fileInput.files.length === 0) {
         resultDiv.innerHTML = "Please select a file to upload.";
@@ -14,22 +13,17 @@ document.getElementById("upload-form").addEventListener("submit", async function
     formData.append("file", fileInput.files[0]);
     
     try {
-        const response = await fetch("https://ai-resume-checker-e833.onrender.com/upload", {
+        resultDiv.innerHTML = "Uploading...";
+        
+        const response = await fetch("/upload", {
             method: "POST",
             body: formData
         });
         
         const data = await response.json();
-        
-        if (response.ok) {
-            resultDiv.innerHTML = `<h3>Upload Successful!</h3><p>${data.message}</p>`;
-            if (data.extracted_text) {
-                resultDiv.innerHTML += `<h4>Extracted Text:</h4><pre>${data.extracted_text}</pre>`;
-            }
-        } else {
-            resultDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
-        }
+        resultDiv.innerHTML = `<strong>Analysis Result:</strong> <br>${data.result}`;
     } catch (error) {
-        resultDiv.innerHTML = `<p style="color: red;">An error occurred: ${error.message}</p>`;
+        resultDiv.innerHTML = "Error uploading file. Please try again.";
+        console.error("Error:", error);
     }
 });
