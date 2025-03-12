@@ -2,8 +2,10 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     e.preventDefault();
 
     let fileInput = document.getElementById("fileInput");
+    let responseMessage = document.getElementById("responseMessage");
+
     if (!fileInput.files.length) {
-        alert("Please select a file.");
+        responseMessage.innerText = "Please select a file.";
         return;
     }
 
@@ -18,12 +20,12 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         let result = await response.json();
         if (response.ok) {
-            alert("Success: " + result.message);
+            responseMessage.innerText = "Success: " + result.message;
         } else {
-            alert("Error: " + result.error);
+            responseMessage.innerText = "Error: " + result.error;
         }
     } catch (error) {
         console.error("Upload failed:", error);
-        alert("Failed to upload file.");
+        responseMessage.innerText = "Failed to upload file.";
     }
 });
