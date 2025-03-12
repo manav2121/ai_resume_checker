@@ -13,7 +13,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     formData.append("file", fileInput.files[0]);
 
     try {
-        let response = await fetch("https://ai-resume-checker-e833.onrender.com/upload", {
+        let response = await fetch("https://ai-resume-scanner-0bpx.onrender.com/upload", {
             method: "POST",
             body: formData
         });
