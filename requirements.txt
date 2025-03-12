@@ -64,4 +64,6 @@ numpy
 pdfplumber
 scikit-learn
 flask-cors
+PyPDF2
+
 
