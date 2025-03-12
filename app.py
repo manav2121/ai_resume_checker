@@ -3,10 +3,10 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app)  # Allow cross-origin requests
+CORS(app)  # Enable CORS for all routes
 
 UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 @app.route("/")
@@ -22,12 +22,11 @@ def upload_file():
     
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
+    
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(file_path)
 
-    # Save file
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-    file.save(filepath)
-
-    return jsonify({"message": "File uploaded successfully", "filename": file.filename})
+    return jsonify({"message": "File uploaded successfully!", "file_path": file_path})
 
 if __name__ == "__main__":
     app.run(debug=True)
