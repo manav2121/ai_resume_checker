@@ -1,36 +1,43 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 import os
-from analysis import analyze_resume  # Make sure analysis.py exists
+import nltk
+
+# Ensure 'punkt' tokenizer is available
+nltk.download('punkt')
 
 app = Flask(__name__)
 
-# Serve Homepage
+# Create an "uploads" folder if it doesn't exist
+UPLOAD_FOLDER = "uploads"
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 @app.route("/")
 def home():
-    return render_template("index.html")  # Ensure index.html is in the "templates/" folder
+    return "Welcome to Resume Analysis API!"
 
-# Handle Resume Upload and Analysis
 @app.route("/upload", methods=["POST"])
-def upload():
+def upload_file():
     if "resume" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["resume"]
     if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+        return jsonify({"error": "Empty file name"}), 400
 
-    # Save file temporarily
-    upload_folder = "uploads"
-    os.makedirs(upload_folder, exist_ok=True)  # Ensure the folder exists
-    file_path = os.path.join(upload_folder, file.filename)
+    # Save the file
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(file_path)
 
-    # Analyze resume
+    # Process the file (Example: Read the content)
     try:
-        result = analyze_resume(file_path)
-        return jsonify({"message": "Resume processed successfully", "analysis": result})
+        with open(file_path, "rb") as f:
+            file_content = f.read()
+        return jsonify({"message": "Upload successful", "filename": file.filename}), 200
     except Exception as e:
-        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
+        return jsonify({"error": f"File processing failed: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
