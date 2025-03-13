@@ -1,11 +1,11 @@
-document.getElementById("uploadForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
+document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+    event.preventDefault(); // Prevent default form submission
     
     const fileInput = document.getElementById("resume");
     const resultDiv = document.getElementById("result");
     
     if (fileInput.files.length === 0) {
-        resultDiv.innerHTML = "Please select a file to upload.";
+        resultDiv.innerHTML = "<p>Please select a file to upload.</p>";
         return;
     }
     
@@ -13,17 +13,30 @@ document.getElementById("uploadForm").addEventListener("submit", async function(
     formData.append("file", fileInput.files[0]);
     
     try {
-        resultDiv.innerHTML = "Uploading...";
-        
-        const response = await fetch("/upload", {
+        const response = await fetch("https://ai-resume-checker-e833.onrender.com/upload", {
             method: "POST",
             body: formData
         });
         
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        
         const data = await response.json();
-        resultDiv.innerHTML = `<strong>Analysis Result:</strong> <br>${data.result}`;
+        console.log("Server Response:", data); // Debugging log
+        
+        if (data.analysis) {
+            resultDiv.innerHTML = `
+                <h2>Analysis Result:</h2>
+                <p><strong>Education:</strong> ${data.analysis.education}</p>
+                <p><strong>Experience:</strong> ${data.analysis.experience.join(", ")}</p>
+                <p><strong>Skills:</strong> ${data.analysis.skills.join(", ")}</p>
+            `;
+        } else {
+            resultDiv.innerHTML = "<p>No analysis found.</p>";
+        }
     } catch (error) {
-        resultDiv.innerHTML = "Error uploading file. Please try again.";
-        console.error("Error:", error);
+        console.error("Error processing file:", error);
+        resultDiv.innerHTML = "<p>Error processing file. Please try again.</p>";
     }
 });

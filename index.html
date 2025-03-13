@@ -3,17 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Scanner</title>
+    <title>Resume Analyzer</title>
 </head>
 <body>
-    <h2>Upload Your Resume</h2>
+    <h2>Upload Resume</h2>
     <form id="uploadForm">
-        <input type="file" id="fileInput" />
+        <input type="file" id="resume" required>
         <button type="submit">Upload</button>
     </form>
+    <div id="result"></div>
 
-    <p id="responseMessage"></p>
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById("resume");
+            if (fileInput.files.length === 0) return;
 
-    <script src="script.js"></script>
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/upload", { method: "POST", body: formData });
+            const data = await response.json();
+
+            document.getElementById("result").innerHTML = `
+                <h2>Analysis</h2>
+                <p><strong>Skills:</strong> ${data.analysis.skills.join(", ")}</p>
+                <p><strong>Experience:</strong> ${data.analysis.experience} years</p>
+                <p><strong>Relevance Score:</strong> ${data.analysis.relevance_score}%</p>
+                <p><strong>Grammar Errors:</strong> ${data.analysis.grammar_errors}</p>
+                <p><strong>Plagiarism Detected:</strong> ${data.analysis.plagiarism_detected ? "Yes" : "No"}</p>
+            `;
+        });
+    </script>
 </body>
 </html>
