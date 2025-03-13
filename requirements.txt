@@ -67,5 +67,6 @@ flask-cors
 PyPDF2
 python-docx
 nltk
+language_tool_python
 
 
