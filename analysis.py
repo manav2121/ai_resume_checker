@@ -3,7 +3,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from collections import Counter
 import re
-import language_tool_python  # Comment or remove this line
+# import language_tool_python  # Comment or remove this line
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
