@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 import os
-from parser import extract_resume_text
+from resume_parser import parse_resume
 from analysis import analyze_resume
 from database import save_to_mongo
 
