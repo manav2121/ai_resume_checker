@@ -66,6 +66,6 @@ scikit-learn
 flask-cors
 PyPDF2
 python-docx
-
+nltk
 
 
