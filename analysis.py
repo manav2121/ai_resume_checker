@@ -3,13 +3,11 @@ import nltk
 from nltk.tokenize import word_tokenize
 from collections import Counter
 import re
-# import language_tool_python  # Comment or remove this line
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from textblob import TextBlob  # Alternative for grammar checking
 
 nlp = spacy.load("en_core_web_sm")
-tool = language_tool_python.LanguageTool("en-US")
 
 # Job-related keywords
 JOB_KEYWORDS = {"python", "flask", "data science", "machine learning", "AI", "NLP"}
@@ -29,9 +27,11 @@ def calculate_relevance(text):
     vectors = vectorizer.fit_transform([job_description, text])
     return cosine_similarity(vectors[0], vectors[1])[0][0]
 
+# Alternative grammar checking using TextBlob
 def check_grammar(text):
-    matches = tool.check(text)
-    return len(matches), [match.message for match in matches[:5]]
+    blob = TextBlob(text)
+    errors = sum(1 for sentence in blob.sentences if sentence.correct() == False)
+    return errors, []  # TextBlob doesn't provide detailed messages
 
 def analyze_resume(text):
     skills = extract_skills(text)
