@@ -3,8 +3,5 @@
 # Ensure pip is up-to-date
 pip install --upgrade pip  
 
-# Force reinstall Gunicorn
-pip install --no-cache-dir --force-reinstall gunicorn  
-
-# Force reinstall PyMuPDF
-pip install --no-cache-dir --force-reinstall PyMuPDF==1.24.0  
+# Install dependencies (force reinstall to avoid issues)
+pip install --no-cache-dir --force-reinstall flask gunicorn PyMuPDF
