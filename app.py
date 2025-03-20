@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import os
 import nltk
-import PyMuPDF  # MuPDF for PDF text extraction
+import pdfplumber  # Alternative to PyMuPDF
 
 # Ensure NLTK is ready
 nltk.download('punkt')
@@ -15,11 +15,13 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Function to extract text from a PDF
+# Function to extract text from a PDF using pdfplumber
 def extract_text_from_pdf(pdf_path):
     try:
-        doc = PyMuPDF.open(pdf_path)
-        text = "\n".join([page.get_text("text") for page in doc])
+        text = ""
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                text += page.extract_text() + "\n"
         return text.strip()
     except Exception as e:
         return f"Error extracting text: {str(e)}"
