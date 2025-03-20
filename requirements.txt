@@ -1,3 +1,5 @@
+--no-cache-dir
+
 annotated-types==0.7.0
 blinker==1.9.0
 blis==1.2.0
