@@ -65,7 +65,8 @@ wrapt==1.17.2
 waitress==2.1.2
 PyPDF2==3.0.1
 python-docx==1.1.0
-PyMuPDF
+
 nltk==3.8.1
+PyMuPDF==1.25.4
 gunicorn==21.2.0
 
