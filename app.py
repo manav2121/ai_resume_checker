@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Allow frontend communication
 import os
 import nltk
 import pdfplumber  # Alternative to PyMuPDF
@@ -7,22 +8,27 @@ import pdfplumber  # Alternative to PyMuPDF
 nltk.download('punkt')
 
 app = Flask(__name__)
+CORS(app)  # Enable Cross-Origin Requests
 
 # Set up the upload folder
 UPLOAD_FOLDER = "uploads"
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Function to extract text from a PDF using pdfplumber
 def extract_text_from_pdf(pdf_path):
     try:
-        text = ""
+        text = []
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
-                text += page.extract_text() + "\n"
-        return text.strip()
+                page_text = page.extract_text()
+                if page_text:
+                    text.append(page_text)
+
+        extracted_text = "\n".join(text).strip()
+        if not extracted_text:
+            return "Error: No text found in the PDF"
+        return extracted_text
     except Exception as e:
         return f"Error extracting text: {str(e)}"
 
@@ -38,12 +44,12 @@ def analyze_resume(text):
     return {
         "word_count": total_words,
         "matched_keywords": matched_keywords,
-        "keyword_match_score": (len(matched_keywords) / len(keywords)) * 100
+        "keyword_match_score": round((len(matched_keywords) / len(keywords)) * 100, 2)
     }
 
 @app.route("/")
 def home():
-    return "Resume Analysis API is running!"
+    return jsonify({"message": "Resume Analysis API is running!"})
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -60,7 +66,7 @@ def upload_file():
 
     # Extract text from the PDF
     resume_text = extract_text_from_pdf(file_path)
-    if "Error" in resume_text:
+    if resume_text.startswith("Error"):
         return jsonify({"error": resume_text}), 500  # Handle errors
 
     # Analyze resume text
